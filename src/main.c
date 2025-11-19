@@ -16,6 +16,7 @@ void print_usage(char *argv[]) {
 
 int main(int argc, char *argv[]) {
     char *filepath = NULL;
+    char *addstring = NULL;
     char *portarg = NULL;
     unsigned short port = 0;
     bool newfile = false;
@@ -23,6 +24,7 @@ int main(int argc, char *argv[]) {
     int c;
     int dbfd = -1;
     struct dbheader_t *dbhdr = NULL;
+    struct employee_t *employees = NULL;
 
     while ((c = getopt(argc, argv, "nf:a:l")) != -1) {
         switch (c) {
@@ -31,6 +33,9 @@ int main(int argc, char *argv[]) {
                 break;
             case 'f':
                 filepath = optarg;
+                break;
+            case 'a':
+                addstring = optarg;
                 break;
             case 'p':
                 portarg = optarg;
@@ -77,7 +82,21 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    //output_file(dbfd, dbhdr);
+    if (read_employees(dbfd, dbhdr, &employees) != STATUS_SUCCESS) {
+        printf("Unable to read employee data!\n");
+        return -1;
+    }
+
+    if (addstring) {
+        dbhdr->count++;
+        realloc(employees, dbhdr->count*sizeof(struct employee_t));
+        add_employee(dbhdr, employees, addstring);
+    }
+
+    if (output_file(dbfd, dbhdr, employees) != STATUS_SUCCESS) {
+        printf("Failed to write data to file!\n");
+        return -1;
+    }
 
     return 0;
 }
