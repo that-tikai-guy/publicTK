@@ -11,14 +11,18 @@ void print_usage(char *argv[]) {
     printf("Usage: %s -n -f <database file>\n", argv[0]);
     printf("\t -n - create new database file\n");
     printf("\t -f - (required) path to database file\n");
-    printf("\t -a - add via CSV list of (name,address,hours)\n");
+    printf("\t -a - add via CSV list of <name,address,hours>\n");
     printf("\t -l - list employee database\n");
+    printf("\t -u - update employee hours via CSV list of <name,hours>\n");
+    printf("\t -r - remove employee from database via CSV list of <name>\n");
     return;
 }
 
 int main(int argc, char *argv[]) {
     char *filepath = NULL;
     char *addstring = NULL;
+    char *updatehours = NULL;
+    char *removestring = NULL;
     bool newfile = false;
     bool list = false;
     int c;
@@ -26,7 +30,7 @@ int main(int argc, char *argv[]) {
     struct dbheader_t *dbhdr = NULL;
     struct employee_t *employees = NULL;
 
-    while ((c = getopt(argc, argv, "nf:a:l")) != -1) {
+    while ((c = getopt(argc, argv, "nf:a:lu:r:")) != -1) {
         switch (c) {
             case 'n':
                 newfile = true;
@@ -39,6 +43,12 @@ int main(int argc, char *argv[]) {
                 break;
             case 'l':
                 list = true;
+                break;
+            case 'u':
+                updatehours = optarg;
+                break;
+            case 'r':
+                removestring = optarg;
                 break;
             case '?':
                 printf("Unknown option -%c\n", c);
@@ -91,9 +101,23 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    if (removestring) {
+        if (remove_employee(dbhdr, &employees, removestring) != STATUS_SUCCESS) {
+            printf("Failed to remove employee from database!\n");
+            return -1;
+        }
+    }
+
+    if (updatehours) {
+        if (update_hours(dbhdr, employees, updatehours) != STATUS_SUCCESS) {
+            printf("Failed to update employee hours!\n");
+            return -1;
+        }
+    }
+
     if (list) {
         if (list_employees(dbhdr, employees) != STATUS_SUCCESS) {
-            printf("Failed to list employee database!\n");
+            printf("Unable to list employee database!\n");
             return -1;
         }
     }

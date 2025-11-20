@@ -107,10 +107,10 @@ int read_employees(int fd, struct dbheader_t *dbhdr, struct employee_t **employe
 }
 
 int add_employee(struct dbheader_t *dbhdr, struct employee_t **employees, char *addstring) {
-    if (dbhdr == NULL) return STATUS_ERROR;
-    if (employees == NULL) return STATUS_ERROR;
+    if (dbhdr      == NULL) return STATUS_ERROR;
+    if (employees  == NULL) return STATUS_ERROR;
     if (*employees == NULL) return STATUS_ERROR;
-    if (addstring == NULL) return STATUS_ERROR;
+    if (addstring  == NULL) return STATUS_ERROR;
 
     char *name = strtok(addstring, ",");
     if (name == NULL) return STATUS_ERROR;
@@ -121,9 +121,7 @@ int add_employee(struct dbheader_t *dbhdr, struct employee_t **employees, char *
 
     struct employee_t *e = *employees;
     e = realloc(e, sizeof(struct employee_t)*(dbhdr->count+1));
-    if (e == NULL) {
-        return STATUS_ERROR;
-    }
+    if (e == NULL) return STATUS_ERROR;
 
     dbhdr->count++;
 
@@ -132,6 +130,52 @@ int add_employee(struct dbheader_t *dbhdr, struct employee_t **employees, char *
     e[dbhdr->count-1].hours = atoi(hours);
 
     *employees = e;
+
+    return STATUS_SUCCESS;
+}
+
+int remove_employee(struct dbheader_t *dbhdr, struct employee_t **employees, char *removestring) {
+    if (dbhdr         == NULL) return STATUS_ERROR;
+    if (employees     == NULL) return STATUS_ERROR;
+    if (*employees    == NULL) return STATUS_ERROR;
+    if (removestring  == NULL) return STATUS_ERROR;
+
+    struct employee_t *e = *employees;
+    e = realloc(e, sizeof(struct employee_t)*(dbhdr->count-1));
+    if (e == NULL) return STATUS_ERROR;
+
+    int i = 0;
+    int j = 0;
+    for (; i < dbhdr->count; i++) {
+        if (*employees[i]->name != *removestring) {
+            e[j] = *employees[i];
+            j++;
+        }
+    }
+
+    dbhdr->count--;
+
+    *employees = e;
+
+    return STATUS_SUCCESS;
+}
+
+int update_hours(struct dbheader_t *dbhdr, struct employee_t *employees, char *updatehours) {
+    if (dbhdr       == NULL) return STATUS_ERROR;
+    if (employees   == NULL) return STATUS_ERROR;
+    if (updatehours == NULL) return STATUS_ERROR;
+
+    char *name = strtok(updatehours, ",");
+    if (name == NULL) return STATUS_ERROR;
+    char *hours = strtok(NULL, ",");
+    if (hours == NULL) return STATUS_ERROR;
+
+    int i = 0;
+    for (; i < dbhdr->count; i++) {
+        if (*employees[i].name == *name) {
+            employees[i].hours = atoi(hours);
+        }
+    }
 
     return STATUS_SUCCESS;
 }
