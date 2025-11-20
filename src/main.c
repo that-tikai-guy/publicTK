@@ -11,15 +11,14 @@ void print_usage(char *argv[]) {
     printf("Usage: %s -n -f <database file>\n", argv[0]);
     printf("\t -n - create new database file\n");
     printf("\t -f - (required) path to database file\n");
-    printf("\t -a - add via CSV list of (name, address, hours)\n");
+    printf("\t -a - add via CSV list of (name,address,hours)\n");
+    printf("\t -l - list employee database\n");
     return;
 }
 
 int main(int argc, char *argv[]) {
     char *filepath = NULL;
     char *addstring = NULL;
-    char *portarg = NULL;
-    unsigned short port = 0;
     bool newfile = false;
     bool list = false;
     int c;
@@ -37,9 +36,6 @@ int main(int argc, char *argv[]) {
                 break;
             case 'a':
                 addstring = optarg;
-                break;
-            case 'p':
-                portarg = optarg;
                 break;
             case 'l':
                 list = true;
@@ -90,6 +86,10 @@ int main(int argc, char *argv[]) {
 
     if (addstring) {
         add_employee(dbhdr, &employees, addstring);
+    }
+
+    if (list) {
+        list_employees(dbhdr, employees);
     }
 
     if (output_file(dbfd, dbhdr, employees) != STATUS_SUCCESS) {
