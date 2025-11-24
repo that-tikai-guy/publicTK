@@ -11,7 +11,6 @@
 #include "parse.h"
 
 
-
 int create_db_header(struct dbheader_t **headerOut) {
     struct dbheader_t *header = calloc(1, sizeof(struct dbheader_t));
     if (header == NULL) {
@@ -67,6 +66,8 @@ int validate_db_header(int fd, struct dbheader_t **headerOut) {
     struct stat dbstat = {0};
     fstat(fd, &dbstat);
     if (header->filesize != dbstat.st_size) {
+        printf("Filesize: %ld\n", header->filesize);
+        printf("Filesize reported: %ld\n", dbstat.st_size);
         printf("Database corrupted!\n");
         free(header);
         return -1;
@@ -107,10 +108,8 @@ int read_employees(int fd, struct dbheader_t *dbhdr, struct employee_t **employe
 }
 
 int add_employee(struct dbheader_t *dbhdr, struct employee_t **employees, char *addstring) {
-    if (dbhdr      == NULL) return STATUS_ERROR;
-    if (employees  == NULL) return STATUS_ERROR;
-    if (*employees == NULL) return STATUS_ERROR;
-    if (addstring  == NULL) return STATUS_ERROR;
+    if (!dbhdr || !employees || !*employees || !addstring)
+        return STATUS_ERROR;
 
     char *name = strtok(addstring, ",");
     if (name == NULL) return STATUS_ERROR;
@@ -135,25 +134,37 @@ int add_employee(struct dbheader_t *dbhdr, struct employee_t **employees, char *
 }
 
 int remove_employee(struct dbheader_t *dbhdr, struct employee_t **employees, char *removestring) {
-    if (dbhdr         == NULL) return STATUS_ERROR;
-    if (employees     == NULL) return STATUS_ERROR;
-    if (*employees    == NULL) return STATUS_ERROR;
-    if (removestring  == NULL) return STATUS_ERROR;
+    if (!dbhdr || !employees || !*employees || !removestring)
+        return STATUS_ERROR;
 
     struct employee_t *e = *employees;
-    e = realloc(e, sizeof(struct employee_t)*(dbhdr->count-1));
-    if (e == NULL) return STATUS_ERROR;
 
-    int i = 0;
-    int j = 0;
-    for (; i < dbhdr->count; i++) {
-        if (*employees[i]->name != *removestring) {
-            e[j] = *employees[i];
-            j++;
+    int index = -1;
+    for (int i = 0; i < dbhdr->count; i++) {
+        if (strcmp(e[i].name, removestring) == 0) {
+            index = i;
+            break;
         }
     }
 
+    if (index == -1) {
+        printf("Employee not found.\n");
+        return STATUS_ERROR;
+    }
+
+    printf("Removing %s from database!\n", e[index].name);
+
+    for (int i = index; i < dbhdr->count - 1; i++) {
+        e[i] = e[i + 1];
+    }
+
+    e = realloc(e, sizeof(struct employee_t) * (dbhdr->count - 1));
+    if (e == NULL && dbhdr->count - 1 > 0)
+        return STATUS_ERROR;
+
     dbhdr->count--;
+
+    dbhdr->filesize -= sizeof(struct dbheader_t);
 
     *employees = e;
 
