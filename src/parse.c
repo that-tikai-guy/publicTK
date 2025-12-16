@@ -108,8 +108,7 @@ int read_employees(int fd, struct dbheader_t *dbhdr, struct employee_t **employe
 }
 
 int add_employee(struct dbheader_t *dbhdr, struct employee_t **employees, char *addstring) {
-    if (!dbhdr || !employees || !*employees || !addstring)
-        return STATUS_ERROR;
+    if (!dbhdr || !employees || !*employees || !addstring) return STATUS_ERROR;
 
     char *name = strtok(addstring, ",");
     if (name == NULL) return STATUS_ERROR;
@@ -134,8 +133,7 @@ int add_employee(struct dbheader_t *dbhdr, struct employee_t **employees, char *
 }
 
 int remove_employee(struct dbheader_t *dbhdr, struct employee_t **employees, char *removestring) {
-    if (!dbhdr || !employees || !*employees || !removestring)
-        return STATUS_ERROR;
+    if (!dbhdr || !employees || !*employees || !removestring) return STATUS_ERROR;
 
     struct employee_t *e = *employees;
 
@@ -154,17 +152,15 @@ int remove_employee(struct dbheader_t *dbhdr, struct employee_t **employees, cha
 
     printf("Removing %s from database!\n", e[index].name);
 
-    for (int i = index; i < dbhdr->count - 1; i++) {
-        e[i] = e[i + 1];
+    for (int i = index; i < dbhdr->count-1; i++) {
+        e[i] = e[i+1];
     }
 
-    e = realloc(e, sizeof(struct employee_t) * (dbhdr->count - 1));
-    if (e == NULL && dbhdr->count - 1 > 0)
+    e = realloc(e, sizeof(struct employee_t)*(dbhdr->count-1));
+    if (e == NULL && dbhdr->count-1 > 0)
         return STATUS_ERROR;
 
     dbhdr->count--;
-
-    dbhdr->filesize -= sizeof(struct dbheader_t);
 
     *employees = e;
 
@@ -172,9 +168,7 @@ int remove_employee(struct dbheader_t *dbhdr, struct employee_t **employees, cha
 }
 
 int update_hours(struct dbheader_t *dbhdr, struct employee_t *employees, char *updatehours) {
-    if (dbhdr       == NULL) return STATUS_ERROR;
-    if (employees   == NULL) return STATUS_ERROR;
-    if (updatehours == NULL) return STATUS_ERROR;
+    if (!dbhdr || !employees || !updatehours) return STATUS_ERROR;
 
     char *name = strtok(updatehours, ",");
     if (name == NULL) return STATUS_ERROR;
